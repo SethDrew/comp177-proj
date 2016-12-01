@@ -66,11 +66,11 @@ d3.queue()
     .defer(d3.tsv, "tsv/drought.tsv", function(d) { rateById.set(d.FIPS, (parseInt(d.D0) + parseInt(d.D1) + parseInt(d.D2) + parseInt(d.D3) + parseInt(d.D4)));
 
     })
-    .defer(d3.json, "tsv/cities.json")
+    .defer(d3.json, "tsv/plants.json")
     .await(ready);
 
 
-function ready(error, us, drought, cities) {
+function ready(error, us, drought, plants) {
   if (error) throw error;
 
   svg.append("g")
@@ -86,9 +86,9 @@ function ready(error, us, drought, cities) {
       .attr("class", "states")
       .attr("d", path);
   
-  
-  cities.forEach(function(c){
-    svg.append("circle").attr("r",2).attr("transform", function() {return "translate(" + projection([c.longitude, c.latitude]) + ")";});
+  console.log(plants);
+  plants.forEach(function(c){
+    svg.append("circle").attr("r",2).attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";});
 });
 
 }
