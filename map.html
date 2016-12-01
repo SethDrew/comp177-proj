@@ -49,8 +49,7 @@ var color = d3.scaleLinear()
     .range(["steelblue","brown"]);
 
 
-
-var quantize = d3.scaleQuantize()
+var quantize_color = d3.scaleQuantize()
     .domain([0, 450])
     .range(d3.range(30).map(function(i) { return color(i); }));
 
@@ -78,7 +77,7 @@ function ready(error, us, drought, plants) {
     .selectAll("path")
       .data(topojson.feature(us, us.objects.counties).features)
     .enter().append("path")
-      .attr("fill", function(d) { return quantize(rateById.get(d.id)); })
+      .attr("fill", function(d) { return quantize_color(rateById.get(d.id)); })
       .attr("d", path)
 
   svg.append("path")
@@ -88,7 +87,13 @@ function ready(error, us, drought, plants) {
   
   console.log(plants);
   plants.forEach(function(c){
-    svg.append("circle").attr("r",2).attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";});
+    var outputs = Object.values(c.output)
+    var sum_outputs = outputs.reduce(function(a, b) { return a + b; }, 0);
+    if(sum_outputs < 0 || sum_outputs == NaN){
+        sum_outputs = 0
+    }
+
+    svg.append("circle").attr("r",Math.sqrt(sum_outputs)/700).attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";});
 });
 
 }
