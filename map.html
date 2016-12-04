@@ -42,7 +42,7 @@ var svg = d3.select("svg"),
     width = +svg.attr("width"),
     height = +svg.attr("height");
 
-var rateById = d3.map();
+var priceByState = d3.map();
 
 var color = d3.scaleLinear()
     .domain([0, 30])
@@ -50,7 +50,7 @@ var color = d3.scaleLinear()
 
 
 var quantize_color = d3.scaleQuantize()
-    .domain([0, 450])
+    .domain([8, 20])
     .range(d3.range(30).map(function(i) { return color(i); }));
 
 var projection = d3.geoAlbersUsa()
@@ -62,29 +62,22 @@ var path = d3.geoPath()
 
 d3.queue()
     .defer(d3.json, "js/us.json")
-    .defer(d3.tsv, "tsv/drought.tsv", function(d) { rateById.set(d.FIPS, (parseInt(d.D0) + parseInt(d.D1) + parseInt(d.D2) + parseInt(d.D3) + parseInt(d.D4)));
-
-    })
+    .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, d.a);})
     .defer(d3.json, "tsv/plants.json")
     .await(ready);
 
-
-function ready(error, us, drought, plants) {
+function ready(error, us, drought, plants, price) {
+  //deleting drought argument removes plants
   if (error) throw error;
 
   svg.append("g")
-      .attr("class", "counties")
+      .attr("class", "states")
     .selectAll("path")
-      .data(topojson.feature(us, us.objects.counties).features)
+      .data(topojson.feature(us, us.objects.states).features)
     .enter().append("path")
-      .attr("fill", function(d) { return quantize_color(rateById.get(d.id)); })
+      .attr("fill", function(d) { return quantize_color(priceByState.get(d.id)); })
       .attr("d", path)
 
-  svg.append("path")
-      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
-      .attr("class", "states")
-      .attr("d", path);
-  
   console.log(plants);
   plants.forEach(function(c){
     var outputs = Object.values(c.output)
