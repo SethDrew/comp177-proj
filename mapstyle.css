@@ -43,11 +43,5 @@ h1 {
 
 
 
-#total-energy-entry : {
-  background: green;
-  padding: 5px;
-  -moz-border-radius: 6px 6px 0 0;
-  border-radius: 6px 6px 0 0; /* standards-compliant: (IE) */
 
-}
 

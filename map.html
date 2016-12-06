@@ -47,7 +47,12 @@
       });
   });
 </script>
-<div class="panel panel-primary" style="width:30%; margin:20px" >
+<div>
+
+<div style="float:left">
+<svg width="960" height="600"></svg>
+</div>
+<div class="panel panel-primary" style="float: left; width:30%; margin:20px" >
     <div class="panel-heading">
     <h3 class="panel-title">
       Total Energy Output per Fuel Type (clickable)
@@ -63,8 +68,7 @@
 </div>
 
 
-
-<svg width="960" height="600"></svg>
+</div>
 <script>
 var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
 var showing_plants = true;
@@ -147,10 +151,12 @@ function toggle_plants_bytype(keys)
   keys.forEach(function(key){
       if(energy_type_toggles[key] == true){
         d3.selectAll("."+key).style("opacity", 0);
+        d3.selectAll("."+key+"-table").style("opacity", .5);
         energy_type_toggles[key] = false;
       }
       else{
         d3.selectAll("."+key).style("opacity", 1);
+        d3.selectAll("."+key+"-table").style("opacity", 1);
         energy_type_toggles[key] = true
 
 
@@ -252,6 +258,9 @@ function ready(error, us, price, plants, total_energy) {
   d3.select("#TotalEnergyPanel").selectAll("div")
         .data(total_energy).enter()
         .append("div")
+        .text(function(d) {return d.name})
+        .append("div")
+        .attr("class", function(d) {return d.key+"-table btn"})
         .style("background", function(d) {return energy_type_colors[d.key]})
         .style("padding", "10px")
         .style("border", "black")
@@ -259,7 +268,8 @@ function ready(error, us, price, plants, total_energy) {
          .style("border-radius", "6px 6px 6px 6px" )
          .style("border", function(d){ if(d.name == "Wind"){return "2px solid black"} else{return ""}})
          .style("width", function(d){var result = Math.sqrt(d.total / most_energy) * 100; console.log(result); return result.toString() + "%"})
-        .text(function(d) {return d.name})
+        // .text(function(d) {return d.name + ": "+d.total.toExponential()+" MWH"})
+
         .on("click", function(d){
             toggle_plants_bytype(d.keys)
         })
