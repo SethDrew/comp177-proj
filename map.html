@@ -1,39 +1,91 @@
 
 <!DOCTYPE html>
 <meta charset="utf-8">
-<style>
+<head>
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/mapstyle.css" rel="stylesheet" type="text/css">
 
-h1 {
-  padding-left: 40px;
-  margin-bottom: -10px;
-}
 
-.counties {
-  fill: none;
-}
-
-.states {
-  fill: none;
-  stroke: #fff;
-  stroke-linejoin: round;
-}
-
-</style>
-<h1></h1></br>
-<svg width="960" height="600"></svg>
+            
 <script src="js/d3.v4.min.js"></script>
 <script src="js/topojson.v1.min.js"></script>
-<script src="https://d3js.org/d3-array.v1.min.js"></script>
-<script src="https://d3js.org/d3-collection.v1.min.js"></script>
-<script src="https://d3js.org/d3-color.v1.min.js"></script>
-<script src="https://d3js.org/d3-format.v1.min.js"></script>
-<script src="https://d3js.org/d3-interpolate.v1.min.js"></script>
-<script src="https://d3js.org/d3-time.v1.min.js"></script>
-<script src="https://d3js.org/d3-time-format.v2.min.js"></script>
-<script src="https://d3js.org/d3-scale.v1.min.js"></script>
+<script src="js/jquery-3.1.0.min.js"></script>
+</head>
+<html>
+<h1></h1></br>
 
+
+<div class="[ form-group ]">
+<input type="checkbox" name="show_plant_checkbox" id="show_plant_checkbox" onchange="toggle_plants()" checked/>
+            <div class="[ btn-group ]">
+                <label for="show_plant_checkbox" class="[ btn btn-default ]">
+                    <span class="[ glyphicon glyphicon-ok ]"></span>
+                    <span> </span>
+                </label>
+                <label for="show_plant_checkbox" class="[ btn btn-default active ]">
+                    Show Plants
+                </label>
+            </div>
+            </div>
+            
+<svg width="960" height="600"></svg>
 <script>
+var showing_plants = true;
+var energy_type_names = {
+  SUN : "Solar and Thermal",
+  COL : "Coal",
+  DFO : "Distillate Petroleum",
+  GEO : "Geothermal",
+  HPS : "Hydroelectric Pumped Storage",
+  HYC : "Hydroelectric Conventional",
+  MLG : "Biogenic Municipal Solid Waste and Landfill Gas",
+  NG  : "Natural Gas",
+  NUC : "Nuclear",
+  OOG : "Other Gases",
+  ORW : "Other Renewables ",
+  OTH : "Other (including nonbiogenic MSW)",
+  PC  : "Petroleum Coke",
+  RFO : "Residual Petroleum",
+  WND : "Wind",
+  WOC : "Waste Coal",
+  WOO : "Waste Oil",
+  WWW : "Wood and Wood Waste"
+};
 
+var energy_type_colors = {
+  SUN : d3.color("gold"),
+  COL : d3.color("darkgray"),
+  DFO : d3.color("black"),
+  GEO : d3.color("darkolivegreen"),
+  HPS : d3.color("royalblue"),
+  HYC : d3.color("royalblue"),
+  MLG : d3.color("lightsalmon"), // natural gasses
+  NG  : d3.color("lightsalmon"), // natural gasses
+  NUC : d3.color("gold"),
+  OOG : d3.color("lightsalmon"), // natural gasses
+  ORW : d3.color("gold"),
+  OTH : d3.color("gold"),
+  PC  : d3.color("black"),
+  RFO : d3.color("black"),
+  WND : d3.color("white"),
+  WOC : d3.color("gold"),
+  WOO : d3.color("gold"),
+  WWW : d3.color("gold")
+};
+
+
+
+function toggle_plants()
+{
+    if($('#show_plant_checkbox').is(":checked")){
+        d3.selectAll(".plant").style("opacity", 1);
+        showing_plants = true;
+      }
+    else{
+        d3.selectAll(".plant").style("opacity", 0);
+      showing_plants = false;
+    }
+}
 
 var title = d3.select("h1")
     .text("US Energy Information Administration Dataset");
@@ -78,17 +130,33 @@ function ready(error, us, price, plants) {
       .attr("fill", function(d) { return quantize_color(priceByState.get(d.id)); })
       .attr("d", path)
 
-  console.log(plants);
+
+  /* add plant dots */
   plants.forEach(function(c){
     var outputs = Object.values(c.output)
     var sum_outputs = outputs.reduce(function(a, b) { return a + b; }, 0);
     if(sum_outputs < 0 || sum_outputs == NaN){
         sum_outputs = 0
     }
-
-    svg.append("circle").attr("r",Math.sqrt(sum_outputs)/700).attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";});
+    svg.append("circle")
+      .attr("id", c.name)
+      .attr("class", "plant")
+      .attr("r",Math.sqrt(sum_outputs)/700)
+      .attr("fill", energy_type_colors[c.aer_fuel_type[0]])
+      .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
+      .append("svg:title")
+      .text(function(d){
+        
+        return energy_type_names[c.name]})
+      // .on("mouseover", function() {
+      //   if(showing_plants){console.log("mouseover")};
+      // });
+    
 });
 
 }
 
+
 </script>
+
+</html>
