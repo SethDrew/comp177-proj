@@ -36,7 +36,7 @@ h1 {
 
 
 var title = d3.select("h1")
-    .text("Drought by County");
+    .text("US Energy Information Administration Dataset");
 
 var svg = d3.select("svg"),
     width = +svg.attr("width"),
@@ -66,7 +66,7 @@ d3.queue()
     .defer(d3.json, "tsv/plants.json")
     .await(ready);
 
-function ready(error, us, drought, plants, price) {
+function ready(error, us, price, plants) {
   //deleting drought argument removes plants
   if (error) throw error;
 
