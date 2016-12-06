@@ -30,6 +30,40 @@
 
 
 
+<script>
+  $(document).ready(function(){
+        // add button style 
+      // Add button style with alignment to left with margin.
+      
+      //loop 
+      $("[name='poll_bar'").each(
+          function(i){      
+            //get poll value  
+            var bar_width = (parseFloat($("[name='poll_val'").eq(i).text())/2).toString();          
+            bar_width = bar_width + "%"; //add percentage sign.                   
+            //set bar button width as per poll value mention in span.
+            $("[name='poll_bar'").eq(i).width(bar_width);         
+            
+      });
+  });
+</script>
+<div class="panel panel-primary" style="width:30%; margin:20px" >
+    <div class="panel-heading">
+    <h3 class="panel-title">
+      Total Energy Output per Fuel Type (clickable)
+    </h3>    
+  </div>     
+  <div class="panel-body"  style="margin:0px; width:100%;">
+    
+    <div id="TotalEnergyPanel"> 
+    </div>
+
+    
+  </div>  
+</div>
+
+
+
 <svg width="960" height="600"></svg>
 <script>
 var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
@@ -59,44 +93,43 @@ var energy_type_colors = {
   SUN : d3.color("gold"),
   COL : d3.color("darkgray"),
   DFO : d3.color("black"),
-  GEO : d3.color("darkolivegreen"),
+  GEO : d3.color("green"),
   HPS : d3.color("royalblue"),
   HYC : d3.color("royalblue"),
   MLG : d3.color("lightsalmon"), // natural gasses
   NG  : d3.color("lightsalmon"), // natural gasses
-  NUC : d3.color("gold"),
-  OOG : d3.color("lightsalmon"), // natural gasses
-  ORW : d3.color("gold"),
-  OTH : d3.color("gold"),
+  NUC : d3.color("red"),
+  OOG : d3.color("lightsalmon"), 
+  ORW : d3.color("darkolivegreen"),
+  OTH : d3.color("darkolivegreen"),
   PC  : d3.color("black"),
   RFO : d3.color("black"),
   WND : d3.color("white"),
   WOC : d3.color("darkgray"),
-  WOO : d3.color("gold"),
-  WWW : d3.color("gold")
+  WOO : d3.color("black"),
+  WWW : d3.color("brown")
 };
+var energy_type_toggles = {
+  SUN : true,
+  COL : true,
+  DFO : true,
+  GEO : true,
+  HPS : true,
+  HYC : true,
+  MLG : true,
+  NG  : true,
+  NUC : true,
+  OOG : true,
+  ORW : true,
+  OTH : true,
+  PC  : true,
+  RFO : true,
+  WND : true,
+  WOC : true,
+  WOO : true,
+  WWW : true
 
-var sums = {
-  SUN: 0,
-  COL: 0,
-  DFO: 0,
-  GEO: 0,
-  HPS: 0,
-  HYC: 0,
-  MLG: 0,
-  NG : 0,
-  NUC: 0,
-  OOG: 0,
-  ORW: 0,
-  OTH: 0,
-  PC : 0,
-  RFO: 0,
-  WND: 0,
-  WOC: 0,
-  WOO: 0,
-  WWW: 0
-}
-
+};
 
 function toggle_plants()
 {
@@ -108,6 +141,22 @@ function toggle_plants()
         d3.selectAll(".plant").style("opacity", 0);
       showing_plants = false;
     }
+}
+function toggle_plants_bytype(keys)
+{
+  keys.forEach(function(key){
+      if(energy_type_toggles[key] == true){
+        d3.selectAll("."+key).style("opacity", 0);
+        energy_type_toggles[key] = false;
+      }
+      else{
+        d3.selectAll("."+key).style("opacity", 1);
+        energy_type_toggles[key] = true
+
+
+      }
+
+    });
 }
 
 var title = d3.select("h1")
@@ -139,9 +188,10 @@ d3.queue()
     .defer(d3.json, "js/us.json")
     .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, [d.a, d.b, d.c, d.d, d.e, d.f, d.g, d.h, d.i, d.j, d.k, d.l, d.m]);})
     .defer(d3.json, "tsv/plants.json")
+    .defer(d3.json, "tsv/totalenergy.json")
     .await(ready);
 
-function ready(error, us, price, plants) {
+function ready(error, us, price, plants, total_energy) {
   //deleting drought argument removes plants
   if (error) throw error;
 
@@ -150,7 +200,7 @@ function ready(error, us, price, plants) {
     .selectAll("path")
       .data(topojson.feature(us, us.objects.states).features)
     .enter().append("path")
-      .attr("fill", function(d) { var i = [].concat.apply([], priceByState.get(d.id)); return quantize_color(i[0]); })
+      .attr("fill", function(d) {var i = [].concat.apply([], priceByState.get(d.id)); return quantize_color(i[0]); })
       .attr("d", path)
       .on('mouseover', function(d) {
         var currentState = this;
@@ -161,27 +211,26 @@ function ready(error, us, price, plants) {
         d3.select(this).style('fill-opacity', 1);
       });
 
+    console.log(plants)
+
   /* add plant dots */
   plants.forEach(function(c){
     var outputs = Object.values(c.output)
+
     var sum_outputs = outputs.reduce(function(a, b) { return a + b; }, 0);
     if(sum_outputs < 0 || sum_outputs == NaN){
         sum_outputs = 0
     }
     svg.append("circle")
       .attr("id", c.name)
-      .attr("class", "plant")
+      .attr("class", "plant "+c.aer_fuel_type[0])
       .attr("r",Math.sqrt(sum_outputs)/700)
-      .attr("fill", energy_type_colors[c.aer_fuel_type[0]])
+      .attr("fill", energy_type_colors[c.aer_fuel_type[0]]) // todo: max value here instead of just first one
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
-      .append("svg:title")
       .text(function(d){
 
         return energy_type_names[c.name]})
-      // .on("mouseover", function() {
-      //   if(showing_plants){console.log("mouseover")};
-      // });
-
+     
   });
 
   d3.select("#slider").on("input", function() {
@@ -193,6 +242,28 @@ function ready(error, us, price, plants) {
         this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[i]);
     });
   });
+
+  total_energy.sort(
+    function(x, y){
+      return x.total > y.total ? 1 : -1
+    }).reverse();
+
+  var most_energy = total_energy[0].total;
+  d3.select("#TotalEnergyPanel").selectAll("div")
+        .data(total_energy).enter()
+        .append("div")
+        .style("background", function(d) {return energy_type_colors[d.key]})
+        .style("padding", "10px")
+        .style("border", "black")
+         .style("-moz-border-radius", "6px 6px 6px 6px")
+         .style("border-radius", "6px 6px 6px 6px" )
+         .style("border", function(d){ if(d.name == "Wind"){return "2px solid black"} else{return ""}})
+         .style("width", function(d){var result = Math.sqrt(d.total / most_energy) * 100; console.log(result); return result.toString() + "%"})
+        .text(function(d) {return d.name})
+        .on("click", function(d){
+            toggle_plants_bytype(d.keys)
+        })
+
 
 }
 
