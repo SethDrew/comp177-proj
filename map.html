@@ -32,18 +32,18 @@
 
 <script>
   $(document).ready(function(){
-        // add button style 
+        // add button style
       // Add button style with alignment to left with margin.
-      
-      //loop 
+
+      //loop
       $("[name='poll_bar'").each(
-          function(i){      
-            //get poll value  
-            var bar_width = (parseFloat($("[name='poll_val'").eq(i).text())/2).toString();          
-            bar_width = bar_width + "%"; //add percentage sign.                   
+          function(i){
+            //get poll value
+            var bar_width = (parseFloat($("[name='poll_val'").eq(i).text())/2).toString();
+            bar_width = bar_width + "%"; //add percentage sign.
             //set bar button width as per poll value mention in span.
-            $("[name='poll_bar'").eq(i).width(bar_width);         
-            
+            $("[name='poll_bar'").eq(i).width(bar_width);
+
       });
   });
 </script>
@@ -56,15 +56,15 @@
     <div class="panel-heading">
     <h3 class="panel-title">
       Total Energy Output per Fuel Type (clickable)
-    </h3>    
-  </div>     
+    </h3>
+  </div>
   <div class="panel-body"  style="margin:0px; width:100%;">
-    
-    <div id="TotalEnergyPanel"> 
+
+    <div id="TotalEnergyPanel">
     </div>
 
-    
-  </div>  
+
+  </div>
 </div>
 
 
@@ -103,7 +103,7 @@ var energy_type_colors = {
   MLG : d3.color("lightsalmon"), // natural gasses
   NG  : d3.color("lightsalmon"), // natural gasses
   NUC : d3.color("red"),
-  OOG : d3.color("lightsalmon"), 
+  OOG : d3.color("lightsalmon"),
   ORW : d3.color("darkolivegreen"),
   OTH : d3.color("darkolivegreen"),
   PC  : d3.color("black"),
@@ -173,6 +173,12 @@ var svg = d3.select("svg"),
     height = +svg.attr("height");
 
 var priceByState = d3.map();
+var nameByID = d3.map();
+
+var currenti = 0;
+
+var tooltip = d3.select('body').append('div')
+            .attr('class', 'hidden tooltip');
 
 var color = d3.scaleLinear()
     .domain([0, 30])
@@ -192,7 +198,7 @@ var path = d3.geoPath()
 
 d3.queue()
     .defer(d3.json, "js/us.json")
-    .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, [d.a, d.b, d.c, d.d, d.e, d.f, d.g, d.h, d.i, d.j, d.k, d.l, d.m]);})
+    .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, [d.a, d.b, d.c, d.d, d.e, d.f, d.g, d.h, d.i, d.j, d.k, d.l, d.m]);  nameByID.set(d.id, d.State);})
     .defer(d3.json, "tsv/plants.json")
     .defer(d3.json, "tsv/totalenergy.json")
     .await(ready);
@@ -211,10 +217,23 @@ function ready(error, us, price, plants, total_energy) {
       .on('mouseover', function(d) {
         var currentState = this;
         d3.select(this).style('fill-opacity', 0.7);
+        tooltip.classed('hidden', false)
+            //.attr('style', 'left:' + (mouse[0]) +
+            //        'px; top:' + (mouse[1] + 100) + 'px')
+            .html("<h4>" + nameByID.get(d.id)+ "</h4></br><p>price: " + priceByState.get(d.id)[currenti] + " cents/Kilowatthour</p>");
+
       })
+      .on('mousemove', function(d) {
+                    var mouse = d3.mouse(svg.node()).map(function(d) {
+                        return parseInt(d);
+                    });
+                    tooltip.attr('style', 'left:' + (mouse[0]) + 'px; top:' + (mouse[1] + 100) + 'px');
+                        //.html("<h4>" + nameByID.get(d.id)+ "</h4></br><p>price: " + priceByState.get(d.id)[currenti] + " cents/Kilowatthour</p>");
+                })
       .on('mouseout', function(d) {
         var currentState = this;
         d3.select(this).style('fill-opacity', 1);
+        tooltip.classed('hidden', true);
       });
 
     console.log(plants)
@@ -236,16 +255,16 @@ function ready(error, us, price, plants, total_energy) {
       .text(function(d){
 
         return energy_type_names[c.name]})
-     
+
   });
 
   d3.select("#slider").on("input", function() {
-    var i = +this.value;
-    d3.select('#range').text(dates[i]);
+    currenti = +this.value;
+    d3.select('#range').text(dates[currenti]);
 
     svg.selectAll("path").each(function(d) {
         console.log(priceByState.get(d.id));
-        this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[i]);
+        this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[currenti]);
     });
   });
 
@@ -276,6 +295,29 @@ function ready(error, us, price, plants, total_energy) {
 
 
 }
+
+//legend
+var w = 140, h = 400;
+var minimum = 8, maximum = 20;
+var minimumColor = "steelblue", maximumColor = "brown";
+var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h + 100);
+var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
+legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
+key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,30)");
+var y = d3.scaleLinear().range([300, 0]).domain([minimum, maximum]);
+var yAxis = d3.axisRight(y);
+
+key.append("g")
+  .attr("class", "y axis")
+  .attr("transform", "translate(42,30)").call(yAxis).append("text");
+key.append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 65)
+    .attr("x", -180)
+    .attr("dy", "1em")
+    .style("text-anchor", "middle")
+    .text("Average Electricity Rate (Cents per Kilowatthour)");
 
 
 </script>
