@@ -6,15 +6,15 @@
 <link href="css/mapstyle.css" rel="stylesheet" type="text/css">
 
 
-            
+
 <script src="js/d3.v4.min.js"></script>
 <script src="js/topojson.v1.min.js"></script>
 <script src="js/jquery-3.1.0.min.js"></script>
 </head>
 <html>
-<h1></h1></br>
-
-
+<h1></h1>
+<span id="range">Aug 2015</span><input id="slider" class="slider" type="range" min="0" max="12" value="0" step="1" />
+</br>
 <div class="[ form-group ]">
 <input type="checkbox" name="show_plant_checkbox" id="show_plant_checkbox" onchange="toggle_plants()" checked/>
             <div class="[ btn-group ]">
@@ -27,9 +27,12 @@
                 </label>
             </div>
             </div>
-            
+
+
+
 <svg width="960" height="600"></svg>
 <script>
+var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
 var showing_plants = true;
 var energy_type_names = {
   SUN : "Solar and Thermal",
@@ -134,7 +137,7 @@ var path = d3.geoPath()
 
 d3.queue()
     .defer(d3.json, "js/us.json")
-    .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, d.a);})
+    .defer(d3.csv, "tsv/price.csv", function(d) { priceByState.set(d.id, [d.a, d.b, d.c, d.d, d.e, d.f, d.g, d.h, d.i, d.j, d.k, d.l, d.m]);})
     .defer(d3.json, "tsv/plants.json")
     .await(ready);
 
@@ -147,9 +150,16 @@ function ready(error, us, price, plants) {
     .selectAll("path")
       .data(topojson.feature(us, us.objects.states).features)
     .enter().append("path")
-      .attr("fill", function(d) { return quantize_color(priceByState.get(d.id)); })
+      .attr("fill", function(d) { var i = [].concat.apply([], priceByState.get(d.id)); return quantize_color(i[0]); })
       .attr("d", path)
-
+      .on('mouseover', function(d) {
+        var currentState = this;
+        d3.select(this).style('fill-opacity', 0.7);
+      })
+      .on('mouseout', function(d) {
+        var currentState = this;
+        d3.select(this).style('fill-opacity', 1);
+      });
 
   /* add plant dots */
   plants.forEach(function(c){
@@ -166,13 +176,23 @@ function ready(error, us, price, plants) {
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
       .append("svg:title")
       .text(function(d){
-        
+
         return energy_type_names[c.name]})
       // .on("mouseover", function() {
       //   if(showing_plants){console.log("mouseover")};
       // });
-    
-});
+
+  });
+
+  d3.select("#slider").on("input", function() {
+    var i = +this.value;
+    d3.select('#range').text(dates[i]);
+
+    svg.selectAll("path").each(function(d) {
+        console.log(priceByState.get(d.id));
+        this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[i]);
+    });
+  });
 
 }
 
