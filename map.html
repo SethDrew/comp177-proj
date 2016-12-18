@@ -15,6 +15,17 @@
 <h1></h1>
 <span id="range">Aug 2015</span><input id="slider" class="slider" type="range" min="0" max="12" value="0" step="1" />
 </br>
+
+
+
+
+<div>
+
+<div style="float:left">
+<svg width="960" height="600"></svg>
+</div>
+<div>
+<div>
 <div class="[ form-group ]">
 <input type="checkbox" name="show_plant_checkbox" id="show_plant_checkbox" onchange="toggle_plants()" checked/>
             <div class="[ btn-group ]">
@@ -27,32 +38,8 @@
                 </label>
             </div>
             </div>
-
-
-
-<script>
-  $(document).ready(function(){
-        // add button style
-      // Add button style with alignment to left with margin.
-
-      //loop
-      $("[name='poll_bar'").each(
-          function(i){
-            //get poll value
-            var bar_width = (parseFloat($("[name='poll_val'").eq(i).text())/2).toString();
-            bar_width = bar_width + "%"; //add percentage sign.
-            //set bar button width as per poll value mention in span.
-            $("[name='poll_bar'").eq(i).width(bar_width);
-
-      });
-  });
-</script>
-<div>
-
-<div style="float:left">
-<svg width="960" height="600"></svg>
 </div>
-<div class="panel panel-primary" style="float: left; width:30%; margin:20px" >
+<div class="panel panel-primary" style="float: left; width:30%; margin-top:10px; margin-right:10px" >
     <div class="panel-heading">
     <h3 class="panel-title">
       Total Energy Output per Fuel Type (clickable)
@@ -66,7 +53,7 @@
 
   </div>
 </div>
-
+</div>
 
 </div>
 <script>
@@ -114,31 +101,31 @@ var energy_type_colors = {
   WWW : d3.color("brown")
 };
 var energy_type_toggles = {
-  SUN : true,
-  COL : true,
-  DFO : true,
-  GEO : true,
-  HPS : true,
-  HYC : true,
-  MLG : true,
-  NG  : true,
-  NUC : true,
-  OOG : true,
-  ORW : true,
-  OTH : true,
-  PC  : true,
-  RFO : true,
-  WND : true,
-  WOC : true,
-  WOO : true,
-  WWW : true
+  SUN : 1,
+  COL : 1,
+  DFO : 1,
+  GEO : 1,
+  HPS : 1,
+  HYC : 1,
+  MLG : 1,
+  NG  : 1,
+  NUC : 1,
+  OOG : 1,
+  ORW : 1,
+  OTH : 1,
+  PC  : 1,
+  RFO : 1,
+  WND : 1,
+  WOC : 1,
+  WOO : 1,
+  WWW : 1
 
 };
 
 function toggle_plants()
 {
     if($('#show_plant_checkbox').is(":checked")){
-        d3.selectAll(".plant").style("opacity", 1);
+        d3.selectAll(".plant").style("opacity", function(d){console.log(d); return energy_type_toggles[d.key]});
         showing_plants = true;
       }
     else{
@@ -149,15 +136,15 @@ function toggle_plants()
 function toggle_plants_bytype(keys)
 {
   keys.forEach(function(key){
-      if(energy_type_toggles[key] == true){
+      if(energy_type_toggles[key] == 1){
         d3.selectAll("."+key).style("opacity", 0);
         d3.selectAll("."+key+"-table").style("opacity", .5);
-        energy_type_toggles[key] = false;
+        energy_type_toggles[key] = 0;
       }
       else{
         d3.selectAll("."+key).style("opacity", 1);
         d3.selectAll("."+key+"-table").style("opacity", 1);
-        energy_type_toggles[key] = true
+        energy_type_toggles[key] = 1
 
 
       }
@@ -277,7 +264,7 @@ function ready(error, us, price, plants, total_energy) {
   d3.select("#TotalEnergyPanel").selectAll("div")
         .data(total_energy).enter()
         .append("div")
-        .text(function(d) {return d.name})
+        .text(function(d) {return d.name + ": "})
         .append("div")
         .attr("class", function(d) {return d.key+"-table btn"})
         .style("background", function(d) {return energy_type_colors[d.key]})
