@@ -13,8 +13,12 @@
 </head>
 <html>
 <h1></h1>
-<span id="range">Aug 2015</span><input id="slider" class="slider" type="range" min="0" max="12" value="0" step="1" />
-</br>
+<div id="sliderbox">
+<label for="slider" id="range" style="display:inline;">Aug 2015</label>
+<input style="display:inline;" id="slider" type="range" min="0" max="12" value="0" step="1"/>
+<button style="display:inline;" type="button" id="start">start</button>
+<button style="display:inline;" type="button" id="stop">stop</button>
+</div></br>
 
 
 
@@ -51,7 +55,7 @@
     </div>
     <div id="TotalEnergyPanel" style="width:70%; float:left">
     </div>
-   
+
 
   </div>
 </div>
@@ -283,7 +287,7 @@ function ready(error, us, price, plants, total_energy) {
   var most_energy = total_energy[0].total;
   d3.select("#TotalEnergyPanel").selectAll("div")
         .data(total_energy).enter()
-        
+
         .append("div")
         .attr("class", function(d) {return d.key+"-table btn"})
         .style("background", function(d) {return energy_type_colors[d.key]})
@@ -326,6 +330,27 @@ key.append("text")
     .style("text-anchor", "middle")
     .text("Average Electricity Rate (Cents per Kilowatthour)");
 
+var myTimer;
+d3.select("#start").on("click", function() {
+    clearInterval (myTimer);
+    myTimer = setInterval (function() {
+    var b= d3.select("#slider");
+      var t = (+b.property("value") + 1) % (+b.property("max") + 1);
+      if (t == 0) { t = +b.property("min"); }
+      b.property("value", t);
+      currenti = t;
+      d3.select('#range').text(dates[currenti]);
+      console.log(currenti);
+      svg.selectAll("path").each(function(d) {
+          //console.log(priceByState.get(d.id));
+          this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[currenti]);
+      });
+    }, 1000);
+});
+
+d3.select("#stop").on("click", function() {
+    clearInterval (myTimer);
+});
 
 </script>
 
