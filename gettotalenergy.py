@@ -6,7 +6,7 @@ with open('tsv/plants.json') as data_file:
 
 
 types = {
-    "SUN" : "Solar and Thermal",
+    "SUN" : "Solar",
     "COL" : "Coal",
     "DFO" : "Petroleum",
     "GEO" : "Geothermal",

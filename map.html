@@ -65,7 +65,7 @@
 <script>
 var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
 var energy_type_names = {
-  SUN : "Solar and Thermal",
+  SUN : "Solar",
   COL : "Coal",
   DFO : "Distillate Petroleum",
   GEO : "Geothermal",
@@ -90,20 +90,20 @@ var energy_type_colors = {
   COL : d3.color("darkgray"),
   DFO : d3.color("black"),
   GEO : d3.color("green"),
-  HPS : d3.color("royalblue"),
-  HYC : d3.color("royalblue"),
+  HPS : d3.color("blue"),
+  HYC : d3.color("blue"),
   MLG : d3.color("lightsalmon"), // natural gasses
   NG  : d3.color("lightsalmon"), // natural gasses
   NUC : d3.color("red"),
   OOG : d3.color("lightsalmon"),
-  ORW : d3.color("darkolivegreen"),
-  OTH : d3.color("darkolivegreen"),
+  ORW : d3.color("PaleGreen"),
+  OTH : d3.color("PaleGreen"),
   PC  : d3.color("black"),
   RFO : d3.color("black"),
   WND : d3.color("white"),
   WOC : d3.color("darkgray"),
   WOO : d3.color("black"),
-  WWW : d3.color("brown")
+  WWW : d3.color("BurlyWood")
 };
 var energy_type_opacities = {
   SUN : 1,
@@ -128,20 +128,23 @@ var energy_type_opacities = {
 };
 
 var showing_all_plants = true
-
+var show_plants_toggle = false
 
 function toggle_plants()
 {
 
     if($('#show_plant_checkbox').is(":checked")){
+      console.log( energy_type_opacities);
         for(var key in energy_type_opacities){
         d3.selectAll("."+key).style("opacity", energy_type_opacities[key]);
       }
+      show_plants_toggle = true;
         svg.selectAll("path").each(function(d) {
             this.style.fill = '#666';
         });
       }
     else{
+      show_plants_toggle = false;
         d3.selectAll(".plant").style("opacity", 0);
         svg.selectAll("path").each(function(d) {
             this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[currenti]);
@@ -150,6 +153,8 @@ function toggle_plants()
 }
 function toggle_plants_bytype(key, allkeys)
 {
+  console.log(key);
+  console.log(allkeys);
   if(showing_all_plants){
     showing_all_plants = false;
     for(var key in energy_type_opacities){
@@ -157,7 +162,9 @@ function toggle_plants_bytype(key, allkeys)
     }
     allkeys.forEach(function(k){ energy_type_opacities[k] = 1; });
       for(var key in energy_type_opacities){
-        d3.selectAll("."+key).style("opacity", energy_type_opacities[key]);
+        if(show_plants_toggle){
+          d3.selectAll("."+key).style("opacity",  energy_type_opacities[key]);
+        }
         if(energy_type_opacities[key] == 0){
           d3.selectAll("."+key+"-table").style("opacity", .5);
         }
@@ -174,7 +181,9 @@ function toggle_plants_bytype(key, allkeys)
       }
       else{
         allkeys.forEach(function(k){
-          d3.selectAll("."+k).style("opacity", 1);
+          if(show_plants_toggle){
+            d3.selectAll("."+k).style("opacity", 1);
+          }
           d3.selectAll("."+key+"-table").style("opacity", 1);
           energy_type_opacities[key] = 1
         });
@@ -264,17 +273,19 @@ function ready(error, us, price, plants, total_energy) {
     if(sum_outputs < 0 || sum_outputs == NaN){
         sum_outputs = 0
     }
+    if(sum_outputs >0){
+  
+    c.aer_fuel_type.forEach(function(type){
     svg.append("circle")
-      .attr("id", c.name)
-      .attr("class", "plant "+c.aer_fuel_type[0])
-      .attr("r",Math.sqrt(sum_outputs)/700)
+      .attr("id", c.name+"_"+type)
+      .attr("class", "plant "+type)
+      .attr("r",Math.sqrt(Math.sqrt(c.output[type])/200))
       .attr("opacity", "0")
-      .attr("fill", energy_type_colors[c.aer_fuel_type[0]]) // todo: max value here instead of just first one
+      .attr("fill", energy_type_colors[type]) // todo: max value here instead of just first one
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
-      .text(function(d){
-
-        return energy_type_names[c.name]})
-
+    
+  })
+  }
   });
 
   d3.select("#slider").on("input", function() {
@@ -311,8 +322,7 @@ function ready(error, us, price, plants, total_energy) {
             toggle_plants_bytype(d.key, d.keys)
         })
   d3.select("#TotalEnergyPanelLabels").selectAll("div").data(total_energy).enter()
-  .append("div")
-  .text(function(d) {return d.name})
+  .append("div").style("padding", "1.3px").attr("class", function(d){return d.key+"-table"}).text(function(d){return d.name})
 }
 
 //legend
