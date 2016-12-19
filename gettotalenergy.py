@@ -63,7 +63,7 @@ x = []
 for key, value in vis_data.iteritems():
     x.append({
         "name":key,
-        "total": value,
+        "total": "{}".format(round(int(value)/1000000)*1000000),
         "key":""
         })
 

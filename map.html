@@ -46,14 +46,17 @@
 <div class="panel panel-primary" style="float: left; width:40%; margin-top:10px; margin-right:10px" >
     <div class="panel-heading">
     <h3 class="panel-title">
-      Total Energy Output per Fuel Type (clickable)
+      Total Energy Output per Fuel Type
     </h3>
   </div>
   <div class="panel-body"  style="margin:0px; width:100%;">
 
-    <div id="TotalEnergyPanelLabels" style="float:left">
+    <div id="TotalEnergyPanelLabels" style="width:25%; float:left">
     </div>
-    <div id="TotalEnergyPanel" style="width:70%; float:left">
+    <div id="TotalEnergyPanel" style="width:60%; float:left">
+
+    </div>
+    <div id="TotalEnergyPanelAmmounts" style="width: 15%; float:left">
     </div>
 
 
@@ -63,6 +66,26 @@
 
 </div>
 <script>
+
+function nFormatter(num, digits) {
+  var si = [
+    { value: 1E18, symbol: " E" },
+    { value: 1E15, symbol: " Peta-" },
+    { value: 1E12, symbol: " Tera-" },
+    { value: 1E9,  symbol: " Giga-" },
+    { value: 1E6,  symbol: " M" },
+    { value: 1E3,  symbol: " k" }
+  ], rx = /\.0+$|(\.[0-9]*[1-9])0+$/, i;
+  for (i = 0; i < si.length; i++) {
+    if (num >= si[i].value) {
+      return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol;
+    }
+  }
+  return num.toFixed(digits).replace(rx, "$1");
+}
+
+
+
 var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
 var energy_type_names = {
   SUN : "Solar",
@@ -323,6 +346,8 @@ function ready(error, us, price, plants, total_energy) {
         })
   d3.select("#TotalEnergyPanelLabels").selectAll("div").data(total_energy).enter()
   .append("div").style("padding", "1.3px").attr("class", function(d){return d.key+"-table"}).text(function(d){return d.name})
+  d3.select("#TotalEnergyPanelAmmounts").selectAll("div").data(total_energy).enter()
+  .append("div").style("padding-top", "3.5px").style("padding-bottom","3.5px").style("font-size", ".8em").attr("class", function(d){return d.key+"-ammount"}).text(function(d){console.log(d);return nFormatter(d.total*1000000, 2) + "WH"})
 }
 
 //legend
