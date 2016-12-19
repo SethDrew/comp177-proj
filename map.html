@@ -27,7 +27,7 @@
 <div>
 <div>
 <div class="[ form-group ]">
-<input type="checkbox" name="show_plant_checkbox" id="show_plant_checkbox" onchange="toggle_plants()" checked/>
+<input type="checkbox" name="show_plant_checkbox" id="show_plant_checkbox" onchange="toggle_plants()"/>
             <div class="[ btn-group ]">
                 <label for="show_plant_checkbox" class="[ btn btn-default ]">
                     <span class="[ glyphicon glyphicon-ok ]"></span>
@@ -39,7 +39,7 @@
             </div>
             </div>
 </div>
-<div class="panel panel-primary" style="float: left; width:30%; margin-top:10px; margin-right:10px" >
+<div class="panel panel-primary" style="float: left; width:40%; margin-top:10px; margin-right:10px" >
     <div class="panel-heading">
     <h3 class="panel-title">
       Total Energy Output per Fuel Type (clickable)
@@ -47,9 +47,11 @@
   </div>
   <div class="panel-body"  style="margin:0px; width:100%;">
 
-    <div id="TotalEnergyPanel">
+    <div id="TotalEnergyPanelLabels" style="float:left">
     </div>
-
+    <div id="TotalEnergyPanel" style="width:70%; float:left">
+    </div>
+   
 
   </div>
 </div>
@@ -58,7 +60,6 @@
 </div>
 <script>
 var dates = ["Aug 2015", "Sep 2015", "Oct 2015", "Nov 2015", "Dec 2015", "Jan 2016", "Feb 2016", "Mar 2016","Apr 2016" , "May 2016", "Jun 2016", "Jul 2016", "Aug 2016"];
-var showing_plants = true;
 var energy_type_names = {
   SUN : "Solar and Thermal",
   COL : "Coal",
@@ -100,7 +101,7 @@ var energy_type_colors = {
   WOO : d3.color("black"),
   WWW : d3.color("brown")
 };
-var energy_type_toggles = {
+var energy_type_opacities = {
   SUN : 1,
   COL : 1,
   DFO : 1,
@@ -122,34 +123,53 @@ var energy_type_toggles = {
 
 };
 
+var showing_all_plants = true
+
+
 function toggle_plants()
 {
+
     if($('#show_plant_checkbox').is(":checked")){
-        d3.selectAll(".plant").style("opacity", function(d){console.log(d); return energy_type_toggles[d.key]});
-        showing_plants = true;
+        for(var key in energy_type_opacities){
+        d3.selectAll("."+key).style("opacity", energy_type_opacities[key]);
+      }
       }
     else{
         d3.selectAll(".plant").style("opacity", 0);
-      showing_plants = false;
     }
 }
-function toggle_plants_bytype(keys)
+function toggle_plants_bytype(key, allkeys)
 {
-  keys.forEach(function(key){
-      if(energy_type_toggles[key] == 1){
-        d3.selectAll("."+key).style("opacity", 0);
-        d3.selectAll("."+key+"-table").style("opacity", .5);
-        energy_type_toggles[key] = 0;
+  if(showing_all_plants){
+    showing_all_plants = false;
+    for(var key in energy_type_opacities){
+      energy_type_opacities[key] = 0;
+    }
+    allkeys.forEach(function(k){ energy_type_opacities[k] = 1; });
+      for(var key in energy_type_opacities){
+        d3.selectAll("."+key).style("opacity", energy_type_opacities[key]);
+        if(energy_type_opacities[key] == 0){
+          d3.selectAll("."+key+"-table").style("opacity", .5);
+        }
+      }
+    }
+
+  else{
+      if(energy_type_opacities[key] == 1){
+        allkeys.forEach(function(k){
+          d3.selectAll("."+k).style("opacity", 0);
+          d3.selectAll("."+key+"-table").style("opacity", .5);
+          energy_type_opacities[key] = 0;
+        });
       }
       else{
-        d3.selectAll("."+key).style("opacity", 1);
-        d3.selectAll("."+key+"-table").style("opacity", 1);
-        energy_type_toggles[key] = 1
-
-
+        allkeys.forEach(function(k){
+          d3.selectAll("."+k).style("opacity", 1);
+          d3.selectAll("."+key+"-table").style("opacity", 1);
+          energy_type_opacities[key] = 1
+        });
       }
-
-    });
+    }
 }
 
 var title = d3.select("h1")
@@ -223,7 +243,6 @@ function ready(error, us, price, plants, total_energy) {
         tooltip.classed('hidden', true);
       });
 
-    console.log(plants)
 
   /* add plant dots */
   plants.forEach(function(c){
@@ -237,6 +256,7 @@ function ready(error, us, price, plants, total_energy) {
       .attr("id", c.name)
       .attr("class", "plant "+c.aer_fuel_type[0])
       .attr("r",Math.sqrt(sum_outputs)/700)
+      .attr("opacity", "0")
       .attr("fill", energy_type_colors[c.aer_fuel_type[0]]) // todo: max value here instead of just first one
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
       .text(function(d){
@@ -250,7 +270,7 @@ function ready(error, us, price, plants, total_energy) {
     d3.select('#range').text(dates[currenti]);
 
     svg.selectAll("path").each(function(d) {
-        console.log(priceByState.get(d.id));
+        // console.log(priceByState.get(d.id));
         this.style.fill = quantize_color([].concat.apply(priceByState.get(d.id))[currenti]);
     });
   });
@@ -263,24 +283,24 @@ function ready(error, us, price, plants, total_energy) {
   var most_energy = total_energy[0].total;
   d3.select("#TotalEnergyPanel").selectAll("div")
         .data(total_energy).enter()
-        .append("div")
-        .text(function(d) {return d.name + ": "})
+        
         .append("div")
         .attr("class", function(d) {return d.key+"-table btn"})
         .style("background", function(d) {return energy_type_colors[d.key]})
         .style("padding", "10px")
         .style("border", "black")
+        .style("display", "block")
          .style("-moz-border-radius", "6px 6px 6px 6px")
          .style("border-radius", "6px 6px 6px 6px" )
          .style("border", function(d){ if(d.name == "Wind"){return "2px solid black"} else{return ""}})
-         .style("width", function(d){var result = Math.sqrt(d.total / most_energy) * 100; console.log(result); return result.toString() + "%"})
+         .style("width", function(d){var result = Math.sqrt(d.total / most_energy) * 100; return result.toString() + "%"})
         // .text(function(d) {return d.name + ": "+d.total.toExponential()+" MWH"})
-
         .on("click", function(d){
-            toggle_plants_bytype(d.keys)
+            toggle_plants_bytype(d.key, d.keys)
         })
-
-
+  d3.select("#TotalEnergyPanelLabels").selectAll("div").data(total_energy).enter()
+  .append("div")
+  .text(function(d) {return d.name})
 }
 
 //legend
