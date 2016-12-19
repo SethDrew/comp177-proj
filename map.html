@@ -330,7 +330,7 @@ var w = 140, h = 400;
 var minimum = 8, maximum = 20;
 var minimumColor = "steelblue", maximumColor = "brown";
 var key = d3.select("body").append("svg").attr("id", "key").attr("heigh", w).attr("width", h + 100);
-var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "0%").attr("y1", "100%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "100%").attr("x2", "0%").attr("y2", "100%").attr("spreadMethod", "pad");
 legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
 legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
 key.append("rect").attr("height", w - 100).attr("width", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(30,30)");
