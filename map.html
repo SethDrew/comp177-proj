@@ -274,7 +274,7 @@ function ready(error, us, price, plants, total_energy) {
         sum_outputs = 0
     }
     if(sum_outputs >0){
-  
+
     c.aer_fuel_type.forEach(function(type){
     svg.append("circle")
       .attr("id", c.name+"_"+type)
@@ -283,7 +283,7 @@ function ready(error, us, price, plants, total_energy) {
       .attr("opacity", "0")
       .attr("fill", energy_type_colors[type]) // todo: max value here instead of just first one
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
-    
+
   })
   }
   });
@@ -329,21 +329,21 @@ function ready(error, us, price, plants, total_energy) {
 var w = 140, h = 400;
 var minimum = 8, maximum = 20;
 var minimumColor = "steelblue", maximumColor = "brown";
-var key = d3.select("body").append("svg").attr("id", "key").attr("width", w).attr("height", h + 100);
-var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "100%").attr("y1", "0%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
+var key = d3.select("body").append("svg").attr("id", "key").attr("heigh", w).attr("width", h + 100);
+var legend = key.append("defs").append("svg:linearGradient").attr("id", "gradient").attr("x1", "0%").attr("y1", "100%").attr("x2", "100%").attr("y2", "100%").attr("spreadMethod", "pad");
 legend.append("stop").attr("offset", "0%").attr("stop-color", maximumColor).attr("stop-opacity", 1);
 legend.append("stop").attr("offset", "100%").attr("stop-color", minimumColor).attr("stop-opacity", 1);
-key.append("rect").attr("width", w - 100).attr("height", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(0,30)");
-var y = d3.scaleLinear().range([300, 0]).domain([minimum, maximum]);
-var yAxis = d3.axisRight(y);
+key.append("rect").attr("height", w - 100).attr("width", h - 100).style("fill", "url(#gradient)").attr("transform", "translate(30,30)");
+var y = d3.scaleLinear().range([300, 0]).domain([maximum, minimum]);
+var yAxis = d3.axisBottom(y);
 
 key.append("g")
   .attr("class", "y axis")
-  .attr("transform", "translate(42,30)").call(yAxis).append("text");
+  .attr("transform", "translate(30,75)").call(yAxis).append("text");
 key.append("text")
-    .attr("transform", "rotate(-90)")
-    .attr("y", 65)
-    .attr("x", -180)
+    //.attr("transform", "rotate(-90)")
+    .attr("y", 100)
+    .attr("x", 182)
     .attr("dy", "1em")
     .style("text-anchor", "middle")
     .text("Average Electricity Rate (Cents per Kilowatthour)");
