@@ -302,7 +302,7 @@ function ready(error, us, price, plants, total_energy) {
     svg.append("circle")
       .attr("id", c.name+"_"+type)
       .attr("class", "plant "+type)
-      .attr("r",Math.sqrt(Math.sqrt(c.output[type])/200))
+      .attr("r",Math.pow(c.output[type],.40)/80)
       .attr("opacity", "0")
       .attr("fill", energy_type_colors[type]) // todo: max value here instead of just first one
       .attr("transform", function() {return "translate(" + projection([c.lon, c.lat]) + ")";})
